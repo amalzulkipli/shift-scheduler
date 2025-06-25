@@ -1,0 +1,64 @@
+Timetable
+
+Project Goal: Create an interactive web-based pharmacy staff scheduling system. The system should automate monthly schedule generation, implement complex alternating shift patterns for four specific staff members, and provide real-time validation warnings. The user interface should be clean, intuitive, and visually appealing (e.g., Notion-themed).
+
+create me a good MVP for my thought process in making a timetable scheduler for my specific retail company.
+This is how i usually schedule my timetable and my thought process works:
+
+1. Business Operation
+    1. Operating hours:  9:30 AM - 9:30 PM
+    2. Clock in/out: 9:15 AM / 9:45 PM
+    3. Staff Configuration
+        1. Personnel Details
+            1. Fatimah (Pharmacist): 45 hours/week, Off Sat-Sun. 
+            2. Mathilda (Assistant Pharmacist): 45 hours/week, Off Mon-Tue. 
+            3. Pah (Assistant Pharmacist): 45 hours/week, Off Mon-Tue. 
+            4. Amal (Pharmacist): 32 hours/week, Off Wed-Thu-Fri. 
+    4. All employees work 45 hours, except Amal, who works 32 hours per week.
+    5. Shift Types (11 hour shift (1.5 hour break), 7/8 hour shift (1 hour break)):
+        1. 11-hour shift (1.5h break)
+        2. 8-hour shift (1h break)
+        3. 7-hour shift (1h break)
+        4. 9-hour shift (1h break for assistants)	
+    6. Shift Preference: 1 morning 2 nights or 2 morning 2 nights.
+    7. Off day: two days in consecutive days
+2. Base pattern shift
+    1. There two base pattern shift can refer ‘base-shift-july.txt’, please check and analyse first
+    2. Core Scheduling Patterns
+        1. 1-Week Alternating System
+        2. All staff follow a weekly alternating pattern with two distinct shift configurations:
+        3. All staff follow a weekly alternating pattern based on ISO Week Numbers.
+            1. Pattern 0 (Used for Odd ISO Weeks):
+                1. Fatimah: Mon-Tue 11h (09:15-21:45), Wed-Thu early 8h (09:15-18:15), Fri early 7h (09:15-17:15)
+                2. Mathilda: Wed 11h (09:15-21:45), Thu-Sat early 9h (09:15-19:15), Sun late 7h (14:45-21:45)
+                3. Pah: Wed-Sat late 9h (11:45-21:45), Sun early 9h (09:15-19:15)
+                4. Amal: Sun, Mon, Tue, Sat late 8h (12:45-21:45)
+            2. Pattern 1 (Used for Even ISO Weeks):
+                1. Fatimah: Mon-Tue 11h (09:15-21:45), Wed-Thu early 8h (09:15-18:15), Fri late 7h (13:45-21:45)
+                2. Mathilda: Wed-Sat late 9h (11:45-21:45), Sun early 9h (09:15-19:15)
+                3. Pah: Wed 11h (09:15-21:45), Thu-Sat early 9h (09:15-19:15), Sun late 7h (14:45-21:45)
+                4. Amal: Sun, Mon, Tue, Sat early 8h (09:15-18:15)
+3. Public holidays
+    1. Check if there are public holidays taken by the company (not all public holidays in malaysia is taken by company)
+    2. Everyone need to be blocked out
+    3. Everyone need to add hours on their shift to cover their hours in off day - abiding the requirement hours per week
+    4. Schedule accordingly
+4. In case of requesting AL and change off day
+    1. If AL is granted, we need to reshuffle the off days based on role (example assistant pharmacist with assistant pharmacist, pharmacist with pharmacist)
+    2. a good example can check on ‘Reference.csv’
+5. Technical Requirements
+    1. Automated Schedule Generation: Generate a monthly schedule based on the above alternating patterns.
+    2. Monday Start: The calendar view should start each week on Monday.
+    3. Extended Calendar View: Display the full week containing the first day of the selected month (including days from the previous month if applicable) and the full last week (including days from the next month if applicable). All displayed days must show their full, calculated staff schedules. Days outside the "current" month should be visually dimmed (e.g., lower opacity, greyed out background) but still fully populated with schedules.
+    4. Use an ISO week number calculation for consistent pattern alternation.
+6. Initial State 
+    1. The system should initially load and display the schedule for July 2025.
+    2. Validate against this reference week pattern (June 30 - July 6, 2025):
+        1. June 30 (Mon): Fatimah: Ph 9:15 AM - 9:45 PM (11h), Mathilda: Off, Pah: Off, Amal: Ph 12:45 PM - 9:45 PM (8h)
+        2. July 1 (Tue): Fatimah: Ph 9:15 AM - 9:45 PM (11h), Mathilda: Off, Pah: Off, Amal: Ph 12:45 PM - 9:45 PM (8h)
+        3. July 2 (Wed): Fatimah: Ph 9:15 AM - 6:15 PM (8h), Mathilda: 9:15 AM - 9:45 PM (11h), Pah: 11:45 PM - 9:45 PM (9h), Amal: Off
+        4. July 3 (Thu): Fatimah: Ph 9:15 AM - 6:15 PM (8h), Mathilda: 9:15 AM - 7:15 PM (9h), Pah: 11:45 PM - 9:45 PM (9h), Amal: Off
+        5. July 4 (Fri): Fatimah: Ph 9:15 AM - 5:15 PM (7h), Mathilda: 9:15 AM - 7:15 PM (9h), Pah: 11:45 PM - 9:45 PM (9h), Amal: Off
+        6. July 5 (Sat): Fatimah: Off, Mathilda: 9:15 AM - 7:15 PM (9h), Pah: 11:45 PM - 9:45 PM (9h), Amal: Ph 12:45 PM - 9:45 PM (8h)
+        7. July 6 (Sun): Fatimah: Off, Mathilda: 2:45 PM - 9:45 PM (7h), Pah: 9:15 AM - 7:15 PM (9h), Amal: Ph 12:45 PM - 9:45 PM (8h)
+    3. The system should generate this exact pattern for this reference week (which is an Odd ISO week, triggering Pattern 0), and continue the alternation consistently across all future weeks.

@@ -1,0 +1,156 @@
+### Prompt for AI Code Generation (Next.js):
+
+"Hello, I need you to generate the initial project scaffold for a web application called "Timetable" using **Next.js**. This application is a sophisticated staff scheduler with complex business logic. Please adhere strictly to the following technical specifications and file structure, which are based on a detailed Product Requirements Document.
+
+**1. Technology Stack & Setup:**
+*   **Framework:** Next.js (latest version, using the App Router)
+*   **Language:** TypeScript
+*   **Styling:** Tailwind CSS (configured and ready to use via `tailwind.config.ts` and `globals.css`)
+*   **Dependencies to Install:** `date-fns`, `zustand`, `lucide-react` (for icons)
+
+**2. Directory and File Structure:**
+Please create the following directory structure inside the `/app` directory:
+
+```
+/app
+|-- (components)/
+|   |-- calendar/
+|   |   |-- calendar-view.tsx
+|   |   |-- calendar-day.tsx
+|   |   |-- shift-display.tsx
+|   |-- ui/
+|       |-- (This can be a placeholder for future UI components like buttons)
+|-- (lib)/
+|   |-- data.ts
+|   |-- schedule-generator.ts
+|   |-- store.ts
+|   |-- types.ts
+|-- page.tsx
+|-- layout.tsx
+```
+*(Note: Using parentheses `()` for folder names in the App Router prevents them from becoming route segments.)*
+
+**3. Initial File Content:**
+
+*   **`/app/(lib)/types.ts`**: This is the most critical file. It must contain all the TypeScript interfaces derived from the PRD's data models section.
+    ```typescript
+    export type StaffRole = 'Pharmacist' | 'Assistant Pharmacist';
+    export type ShiftType = '11h' | '9h' | '8h' | '7h';
+    export type ShiftTiming = 'early' | 'late' | null;
+    export type DayEventType = 'Shift' | 'AL' | 'PH' | 'OFF';
+
+    export interface StaffMember {
+      id: string;
+      name: string;
+      role: StaffRole;
+      weeklyHours: number;
+      defaultOffDays: number[]; // 0 for Sunday, 1 for Monday, etc.
+    }
+
+    export interface ShiftDefinition {
+      type: ShiftType;
+      timing: ShiftTiming;
+    }
+
+    export interface ShiftPattern {
+      patternId: 0 | 1;
+      dailyShifts: { [dayOfWeek: number]: ShiftDefinition | 'OFF' };
+    }
+    
+    export interface ScheduledShift {
+        staffId: string;
+        startTime: Date;
+        endTime: Date;
+    }
+
+    export interface DayEvent {
+        event: DayEventType;
+        details: ScheduledShift | null;
+        warning: string | null;
+    }
+
+    export interface ScheduledDay {
+      date: Date;
+      staff: Record<string, DayEvent>; // Using Record for staffId as key
+    }
+    ```
+
+*   **`/app/(lib)/data.ts`**: Hardcode and export the four staff members and their two shift patterns using the defined interfaces.
+    ```typescript
+    import { StaffMember, ShiftPattern } from './types';
+    export const staffMembers: StaffMember[] = [/* ... */];
+    export const shiftPatterns: ShiftPattern[] = [/* ... */];
+    ```
+
+*   **`/app/(lib)/schedule-generator.ts`**: Create a placeholder function. This is where the core logic will live.
+    ```typescript
+    import { ScheduledDay } from './types';
+
+    // This function can be run on the server.
+    export function generateSchedule(month: number, year: number): ScheduledDay[] {
+      console.log(`Generating schedule for ${month}/${year}`);
+      // TODO: Implement the core scheduling logic here based on the PRD.
+      return []; // Return dummy data for now
+    };
+    ```
+
+*   **`/app/(lib)/store.ts`**: Set up a basic `zustand` store for client-side state.
+    ```typescript
+    'use client';
+    import { create } from 'zustand';
+
+    interface ScheduleState {
+      currentDate: Date;
+      setCurrentDate: (date: Date) => void;
+    }
+
+    export const useScheduleStore = create<ScheduleState>((set) => ({
+      currentDate: new Date('2025-07-01T00:00:00'), // Default to July 2025
+      setCurrentDate: (date) => set({ currentDate: date }),
+    }));
+    ```
+
+*   **`/app/page.tsx`**: This will be a **Server Component**. It should call `generateSchedule` and pass the initial schedule data to the client-side `CalendarView` component.
+    ```typescript
+    import { CalendarView } from './(components)/calendar/calendar-view';
+    import { generateSchedule } from './(lib)/schedule-generator';
+
+    export default function HomePage() {
+      // Logic runs on the server
+      const initialSchedule = generateSchedule(7, 2025);
+
+      return (
+        <main className="p-4">
+          <h1 className="text-2xl font-bold mb-4">Pharmacy Schedule</h1>
+          <CalendarView initialSchedule={initialSchedule} />
+        </main>
+      );
+    }
+    ```
+
+*   **`/app/(components)/calendar/calendar-view.tsx`**: This must be a **Client Component** (`'use client'`). It will receive the initial schedule via props and manage the interactive state.
+    ```typescript
+    'use client';
+    import { useState } from 'react';
+    import { useScheduleStore } from '@/app/(lib)/store';
+    import { ScheduledDay } from '@/app/(lib)/types';
+
+    interface CalendarViewProps {
+      initialSchedule: ScheduledDay[];
+    }
+
+    export function CalendarView({ initialSchedule }: CalendarViewProps) {
+      const { currentDate, setCurrentDate } = useScheduleStore();
+      const [schedule, setSchedule] = useState(initialSchedule);
+
+      // TODO: Add buttons and logic to change months
+      
+      return (
+        <div>
+          {/* Calendar grid rendering logic goes here */}
+        </div>
+      );
+    }
+    ```
+
+Please set up all necessary configuration files (`next.config.mjs`, `tailwind.config.ts`, `tsconfig.json`) and initialize a `package.json` with all required dependencies. The resulting scaffold should be a fully runnable Next.js application." 

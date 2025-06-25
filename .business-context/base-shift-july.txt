@@ -1,0 +1,218 @@
+Mon
+Tue
+Wed
+Thu
+Fri
+Sat
+Sun
+30
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 12:45-21:45 (7.0h)
+1
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 12:45-21:45 (7.0h)
+2
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 09:15-21:45 (9.5h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+3
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+4
+Fatimah: Ph 09:15-17:15 (6.0h)
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+5
+Fatimah: OFF
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: Ph 12:45-21:45 (7.0h)
+6
+Fatimah: OFF
+Mathilda: 14:45-21:45 (6.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: Ph 12:45-21:45 (7.0h)
+7
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 09:15-18:15 (7.0h)
+8
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 09:15-18:15 (7.0h)
+9
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-21:45 (9.5h)
+Amal: OFF
+10
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: OFF
+11
+Fatimah: Ph 13:45-21:45 (6.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: OFF
+12
+Fatimah: OFF
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: Ph 09:15-18:15 (7.0h)
+13
+Fatimah: OFF
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 14:45-21:45 (6.0h)
+Amal: Ph 09:15-18:15 (7.0h)
+14
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 12:45-21:45 (7.0h)
+15
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 12:45-21:45 (7.0h)
+16
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 09:15-21:45 (9.5h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+17
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+18
+Fatimah: Ph 09:15-17:15 (6.0h)
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+19
+Fatimah: OFF
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: Ph 12:45-21:45 (7.0h)
+20
+Fatimah: OFF
+Mathilda: 14:45-21:45 (6.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: Ph 12:45-21:45 (7.0h)
+21
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 09:15-18:15 (7.0h)
+22
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 09:15-18:15 (7.0h)
+23
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-21:45 (9.5h)
+Amal: OFF
+24
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: OFF
+25
+Fatimah: Ph 13:45-21:45 (6.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: OFF
+26
+Fatimah: OFF
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: Ph 09:15-18:15 (7.0h)
+27
+Fatimah: OFF
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 14:45-21:45 (6.0h)
+Amal: Ph 09:15-18:15 (7.0h)
+28
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 12:45-21:45 (7.0h)
+29
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 12:45-21:45 (7.0h)
+30
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 09:15-21:45 (9.5h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+31
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+1
+Aug
+Fatimah: Ph 09:15-17:15 (6.0h)
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: OFF
+2
+Fatimah: OFF
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 11:45-21:45 (8.0h)
+Amal: Ph 12:45-21:45 (7.0h)
+3
+Fatimah: OFF
+Mathilda: 14:45-21:45 (6.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: Ph 12:45-21:45 (7.0h)
+4
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 09:15-18:15 (7.0h)
+5
+Fatimah: Ph 09:15-21:45 (9.5h)
+Mathilda: OFF
+Pah: OFF
+Amal: Ph 09:15-18:15 (7.0h)
+6
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-21:45 (9.5h)
+Amal: OFF
+7
+Fatimah: Ph 09:15-18:15 (7.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: OFF
+8
+Fatimah: Ph 13:45-21:45 (6.0h)
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: OFF
+9
+Fatimah: OFF
+Mathilda: 11:45-21:45 (8.0h)
+Pah: 09:15-19:15 (8.0h)
+Amal: Ph 09:15-18:15 (7.0h)
+10
+Fatimah: OFF
+Mathilda: 09:15-19:15 (8.0h)
+Pah: 14:45-21:45 (6.0h)
+Amal: Ph 09:15-18:15 (7.0h)

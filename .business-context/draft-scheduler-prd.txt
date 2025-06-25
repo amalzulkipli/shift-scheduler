@@ -1,0 +1,117 @@
+<context>
+# Overview
+This document outlines the requirements for "Timetable," an interactive web-based pharmacy staff scheduling system. The primary goal is to create a Minimum Viable Product (MVP) that automates the generation of a monthly staff schedule based on a complex set of rules, including alternating weekly patterns, public holiday adjustments, and role-based leave coverage.
+
+The system will replace a manual, time-consuming process, ensuring scheduling is consistent, fair, and adheres to the specific operational constraints of the pharmacy. The user interface will be clean, intuitive, and visually inspired by Notion's minimalist aesthetic.
+
+# Core Features
+
+### 1. Staff & Shift Core Definitions
+- **Staff Members:** The system will be hardcoded for four specific staff members with fixed roles, weekly hours, and default off-days.
+  - `Fatimah`: Pharmacist, 45 hours/week, Off Sat-Sun.
+  - `Mathilda`: Assistant Pharmacist, 45 hours/week, Off Mon-Tue.
+  - `Pah`: Assistant Pharmacist, 45 hours/week, Off Mon-Tue.
+  - `Amal`: Pharmacist, 32 hours/week, Off Wed-Thu-Fri.
+- **Shift Types:** The system will operate with a fixed set of defined shifts.
+  - `11-hour shift`: 09:15 - 21:45 (12.5h duration, 1.5h break, 11 work hours).
+  - `9-hour shift`: 09:15 - 19:15 (early) or 11:45 - 21:45 (late) (10h duration, 1h break, 9 work hours).
+  - `8-hour shift`: 09:15 - 18:15 (early) or 12:45 - 21:45 (late) (9h duration, 1h break, 8 work hours).
+  - `7-hour shift`: 09:15 - 17:15 (early) or 14:45 - 21:45 (late) (8h duration, 1h break, 7 work hours).
+
+### 2. Automated Schedule Generation Engine
+- **ISO Week-Based Alternating Patterns:** The core of the scheduler is a 1-week alternating system based on the ISO 8601 week number.
+  - **Pattern 0 (Odd ISO Weeks):**
+    - `Fatimah`: Mon/Tue (11h), Wed/Thu (8h early), Fri (7h early).
+    - `Mathilda`: Wed (11h), Thu/Fri/Sat (9h early), Sun (7h late).
+    - `Pah`: Wed/Thu/Fri/Sat (9h late), Sun (9h early).
+    - `Amal`: Mon/Tue/Sat/Sun (8h late).
+  - **Pattern 1 (Even ISO Weeks):**
+    - `Fatimah`: Mon/Tue (11h), Wed/Thu (8h early), Fri (7h late).
+    - `Mathilda`: Wed/Thu/Fri/Sat (9h late), Sun (9h early).
+    - `Pah`: Wed (11h), Thu/Fri/Sat (9h early), Sun (7h late).
+    - `Amal`: Mon/Tue/Sat/Sun (8h early).
+
+### 3. Exception Handling
+- **Public Holidays (PH):**
+  - A list of company-observed public holidays will be configurable.
+  - On a PH, all staff are marked as "PH" and their scheduled shifts for that day are cancelled.
+  - The work hours from the cancelled shift must be "banked" and re-allocated to that staff member's other shifts within the *same week* to ensure their weekly hour target is met.
+  - The system must provide a clear visual indicator for how these hours are re-allocated (e.g., a note on the extended shifts).
+- **Annual Leave (AL) & Off-Day Swapping:**
+  - When an employee is marked for AL, the system must find coverage.
+  - Coverage is constrained by role: Pharmacists can only cover for Pharmacists, and Assistant Pharmacists for Assistant Pharmacists.
+  - The system should prioritize swapping off-days between staff of the same role to maintain coverage before altering shift times.
+  - If a swap is not possible, the system must generate a validation warning, highlighting the coverage gap to the user for manual resolution.
+
+### 4. User Interface & Experience
+- **Notion-Themed Calendar:** A clean, minimalist monthly calendar view.
+- **Monday Start:** All weeks displayed in the calendar must start on Monday.
+- **Extended View:** The calendar must always display the full week containing the first day of the month and the full week containing the last day of the month.
+- **Visual State:** Days not belonging to the currently selected month must be visually dimmed (e.g., greyed out) but still display their fully calculated schedules.
+- **Validation Warnings:** The UI must display clear, non-blocking warnings for unresolvable conflicts (e.g., coverage gaps from AL).
+
+# User Experience
+- **User Persona:** The primary user is the pharmacy manager responsible for creating and managing the staff schedule.
+- **Key User Flows:**
+    1.  **View Schedule:** On launch, the user sees the current month's schedule (defaulting to July 2025).
+    2.  **Navigate Months:** The user can move to previous and future months to view schedules.
+    3.  **Identify Patterns:** The user can clearly see the alternating weekly patterns and how they are applied to each staff member.
+    4.  **Manage Leave & Holidays:** The user can input an Annual Leave (AL) request or a Public Holiday (PH), triggering an automatic recalculation of the schedule.
+    5.  **Review Warnings:** The user is clearly shown any scheduling conflicts or coverage gaps that the system could not resolve automatically.
+- **UI/UX Considerations:**
+    -   **Theme:** Clean, minimalist, "Notion-themed" design with good typography and layout.
+    -   **Visual Cues:** Use distinct colors or styles for different staff members and event types (Shift, AL, PH).
+    -   **Clarity:** The display of banked hours and re-allocated shifts due to public holidays must be intuitive and easy to understand.
+
+# Initial State & Validation
+- **Default View:** The application must load and display the schedule for **July 2025**.
+- **Reference Week Validation:** The generated schedule for the week of **June 30 - July 6, 2025** (an Odd ISO week) must exactly match the output derived from **Pattern 0**. This will be the primary acceptance criterion for the core engine's correctness.
+
+</context>
+<PRD>
+# Technical Architecture
+
+### Frontend & Application Logic
+- **Framework:** **Next.js** (using the App Router) is required. This will handle both the frontend rendering and the application logic, leveraging React Server Components (RSC) where possible for initial schedule generation.
+- **UI Components:** **Shadcn UI** is highly recommended as it integrates seamlessly with Next.js and Tailwind CSS, and will help achieve the Notion-inspired aesthetic efficiently.
+- **Date Management:** **date-fns** remains the required library for robust handling of dates, times, and especially ISO week calculations.
+- **Scheduling Engine Module:** All business logic for schedule generation should be encapsulated in a dedicated, testable module within the Next.js project structure (e.g., `/lib/scheduleGenerator.ts`). This function can be called from a Server Component for the initial render.
+- **State Management:** For client-side interactivity (like changing months), a simple solution like **Zustand** or **Jotai** is recommended, or even React's built-in `useState` and `useContext` for managing the currently selected date.
+
+### Data Models
+- **`StaffMember`**: `{ id, name, role: 'Pharmacist' | 'Assistant Pharmacist', weeklyHours: number, defaultOffDays: number[] }`
+- **`ShiftPattern`**: `{ patternId: 0 | 1, dailyShifts: { [dayOfWeek]: ShiftDefinition } }`
+- **`ShiftDefinition`**: `{ type: '11h' | '9h' | '8h' | '7h', timing: 'early' | 'late' | null }`
+- **`ScheduledDay`**: `{ date, staff: { [staffId]: { event: 'Shift' | 'AL' | 'PH' | 'OFF', details: Shift | null, warning: string | null } } }`
+- **`WeeklyHourLog`**: `{ staffId, weekNumber, targetHours, scheduledHours, bankedHours }`
+
+# Development Roadmap
+
+### Phase 1: Core Engine & "Perfect World" Schedule
+1.  **Setup:** Initialize a new Next.js project (App Router) with TypeScript and Tailwind CSS. Install `date-fns`.
+2.  **Models:** Implement the data models defined above. Hardcode the four staff members and their two shift patterns.
+3.  **Engine v1:** Create the initial scheduling function that takes a date range and generates a "perfect world" schedule, correctly applying Pattern 0 or 1 based on the ISO week number. It should ignore all exceptions (AL, PH) for this phase.
+4.  **Unit Testing:** Write extensive unit tests for the engine. Critically, assert that the output for June 30 - July 6, 2025, exactly matches the reference pattern.
+
+### Phase 2: UI & Visualization
+1.  **Calendar Component:** Build the main calendar grid component. Ensure it starts on Monday and correctly implements the "extended view" for adjacent months.
+2.  **Integration:** Connect the UI to the scheduling engine to display the generated shifts.
+3.  **Styling:** Apply the Notion-themed styling, including the dimming of non-current-month days.
+4.  **Initial State:** Ensure the app loads with the July 2025 schedule by default.
+
+### Phase 3: Exception Logic & Validation (MVP Completion)
+1.  **Public Holidays:**
+    -   Update the engine to accept a list of PH dates.
+    -   Implement the "hour banking" logic: cancel the shift, calculate banked hours, and find a strategy to re-allocate them to other shifts in the same week.
+2.  **Annual Leave:**
+    -   Update the engine to handle AL requests.
+    -   Implement the role-based off-day swapping logic.
+    -   Implement the generation of validation warnings for unresolvable coverage gaps.
+3.  **UI Warnings:** Display the validation warnings from the engine in the UI in a clear but unobtrusive way.
+
+# Risks and Mitigations
+- **Risk:** The hour-banking and leave-swapping logic is highly complex and may have edge cases.
+  - **Mitigation:** Tackle this with a test-driven development (TDD) approach. Prioritize generating a *warning* for an unresolvable state over crashing or producing an incorrect schedule. Allow for manual overrides in the UI as a final fallback.
+- **Risk:** Calculating weekly hour totals across month boundaries is tricky.
+  - **Mitigation:** All hour calculations must be strictly bound to the ISO week, not the calendar month. The `WeeklyHourLog` data model will be essential for this.
+</PRD>

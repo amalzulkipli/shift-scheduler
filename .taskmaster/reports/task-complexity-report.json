@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2025-06-22T10:14:44.233Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Implement Public Holiday Hour-Banking Logic",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the implementation of public holiday hour-banking logic into subtasks such as: updating the generateSchedule function, handling hour calculation and banking, reallocating hours within the ISO week, updating the ScheduledDay.staff object, integrating date-fns for date operations, and writing unit tests for all scenarios.",
+			"reasoning": "This task involves modifying core scheduling logic, handling multiple edge cases, integrating with date libraries, and ensuring data consistency. The need for robust testing and the number of conditional flows increases cyclomatic and cognitive complexity, warranting a high score and multiple subtasks for clarity and maintainability.[1][3][4][5]"
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Implement Annual Leave Coverage and Swapping Logic",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Expand this task into subtasks such as: updating generateSchedule for leave requests, implementing role-based staff search and swapping, handling swap failures and warning generation, enforcing role constraints, updating the schedule data structure, and writing comprehensive unit tests.",
+			"reasoning": "This task requires intricate logic for role-based staff swapping, handling multiple failure modes, and updating the schedule structure. The dependency on previous logic and the need for detailed testing add to its complexity, justifying a high score and several subtasks.[1][3][4][5]"
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Implement Comprehensive Unit Testing for Exception Logic",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Divide this task into subtasks such as: setting up the test environment, writing tests for public holiday logic, writing tests for annual leave logic, creating integration tests for combined scenarios, and ensuring high coverage with edge cases.",
+			"reasoning": "While not introducing new business logic, this task demands thorough coverage of complex exception scenarios, integration testing, and careful test data design, making it moderately high in complexity and requiring multiple focused subtasks.[4][5]"
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Implement Client-Side State Management",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break this task into subtasks such as: installing Zustand, defining the store structure and actions, implementing the store and custom hook, and writing unit/integration tests for state updates.",
+			"reasoning": "Introducing a new state management library and designing the state structure is moderately complex, especially with multiple state slices and actions, but is well-bounded and can be split into clear subtasks.[4][5]"
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Connect UI Controls to State Management",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Expand this task into subtasks such as: updating ScheduleToolbar to use the store, wiring up month navigation handlers, and ensuring the main Schedule component reacts to state changes.",
+			"reasoning": "This task involves standard UI-to-state wiring and some performance optimization, which is of moderate complexity and can be handled with a few focused subtasks.[4][5]"
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Implement Add Holiday Modal Functionality",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Divide this task into subtasks such as: implementing the modal UI and form logic, integrating with the store and schedule recalculation, and adding validation and accessibility enhancements.",
+			"reasoning": "This is a typical modal form implementation with state updates and validation, which is moderately complex and can be split into a few clear subtasks.[4][5]"
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement Add Leave Modal Functionality",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break this task into subtasks such as: building the modal UI and form, integrating with the store and schedule recalculation, and implementing validation and accessibility features.",
+			"reasoning": "Similar to the holiday modal, this involves standard form handling, state updates, and validation, making it moderately complex and suitable for a few subtasks.[4][5]"
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Implement Warning Display in ScheduleCell",
+			"complexityScore": 4,
+			"recommendedSubtasks": 2,
+			"expansionPrompt": "Expand this task into subtasks such as: updating ScheduleCell to display warnings visually and ensuring accessibility and styling compliance.",
+			"reasoning": "This is a focused UI enhancement with some accessibility considerations, relatively low in complexity and requiring only a couple of subtasks.[4][5]"
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Implement Schedule Recalculation Trigger",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Divide this task into subtasks such as: implementing the recalculateSchedule function, updating store actions to trigger recalculation, adding debouncing/throttling, and integrating loading indicators.",
+			"reasoning": "This task involves coordinating state changes, recalculation logic, and UI feedback, with some performance considerations, making it moderately complex and suitable for several subtasks.[4][5]"
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Implement Final UI Polish and Responsiveness",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break this task into subtasks such as: refining UI components for design consistency, implementing responsive layouts, adding animations and transitions, and conducting accessibility and performance audits.",
+			"reasoning": "This task covers a broad range of UI improvements and testing, but each aspect is well-understood and can be handled in parallel, resulting in moderate complexity and several subtasks.[4][5]"
+		}
+	]
+}

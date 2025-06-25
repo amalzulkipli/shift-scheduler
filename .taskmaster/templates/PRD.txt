@@ -1,0 +1,275 @@
+<context>
+# Overview
+This document outlines the requirements for "Timetable," an interactive web-based pharmacy staff scheduling system. The primary goal is to build upon the existing Next.js and Shadcn UI scaffold to deliver a production-ready pharmacy management system using a **frontend-first development approach** for smooth shipping. The system will handle complex alternating weekly patterns, public holiday adjustments, role-based leave coverage, manager analytics, and manual schedule adjustments, all presented in a clean, professional user interface. It will replace a manual process, ensuring scheduling is consistent, fair, and adheres to the pharmacy's specific operational constraints.
+
+# Core Features
+[Current implementation status and feature roadmap organized by shipping priority]
+
+## ✅ COMPLETED - Base Foundation
+-   **Staff & Shift Core Definitions:** The system includes four hardcoded staff members with fixed roles, weekly hours, and shift definitions in `lib/staff-data.ts`.
+-   **Automated Schedule Generation Engine:** Core engine in `lib/schedule-generator.ts` generates base schedules with alternating weekly patterns (Pattern 0 for Even ISO weeks, Pattern 1 for Odd weeks).
+-   **Basic UI Framework:** Comprehensive Shadcn UI components with calendar view (`components/schedule-calendar.tsx`), modals, and responsive design.
+-   **State Management Integration:** Zustand store (`hooks/use-schedule-store.ts`) manages application state including current month, holidays, and leave requests.
+-   **Basic Exception Marking:** System correctly identifies and marks staff as `PH` (Public Holiday) or `AL` (Annual Leave) on respective dates.
+
+## 🚧 IN PROGRESS - Critical Issues
+-   **Holiday/Leave Management:** Add/Remove functionality exists but deletion is broken (Task #16 - HIGH PRIORITY)
+-   **Toast Message Overflow:** Excessive notifications need reduction for professional UX (Task #13 - HIGH PRIORITY)
+-   **Hour Banking Logic:** Public holiday hour reallocation has critical calculation bugs (Task #11 - HIGH PRIORITY)
+-   **Annual Leave Coverage:** No role-based coverage/swapping logic implemented (Task #12 - HIGH PRIORITY)
+
+## 🎯 PLANNED - Frontend-First Features
+-   **Manager Analytics Dashboard:** Weekly/monthly hour tracking, compliance monitoring, visual charts (Task #17)
+-   **Resolution Wizard Interface:** Interactive system for resolving schedule warnings and conflicts (Task #18)
+-   **Manual Schedule Adjustment:** Drag-and-drop interface for manual schedule overrides (Task #14)
+-   **Comprehensive Testing:** Integration tests for all scheduling logic (Task #15)
+
+# User Experience
+[User journey optimized for pharmacy manager workflow with progressive enhancement]
+
+-   **Primary User Persona:** Pharmacy Manager responsible for staff scheduling, compliance, and operational efficiency
+-   **Secondary Users:** Staff members viewing their schedules (future scope)
+
+## Key User Flows (Frontend-First Priority):
+1.  **Schedule Overview & Navigation:** 
+    -   Manager launches app and sees current month schedule
+    -   Clean navigation between months without excessive notifications
+    -   Quick visual identification of holidays, leave, and warnings
+
+2.  **Exception Management:**
+    -   Add public holidays and annual leave through polished modals
+    -   **Delete/modify** added exceptions without page refresh (Critical Fix)
+    -   Real-time schedule updates with proper state management
+
+3.  **Analytics & Monitoring (New):**
+    -   Weekly hour summaries per staff member
+    -   Monthly compliance tracking (target hours vs actual)
+    -   Visual indicators for staffing gaps and overtime
+
+4.  **Conflict Resolution (New):**
+    -   Interactive warnings with actionable resolution suggestions
+    -   Guided wizard for resolving coverage gaps and hour shortfalls
+    -   Manual override capabilities for complex situations
+
+5.  **Manual Adjustments (Enhancement):**
+    -   Drag-and-drop schedule modifications
+    -   Real-time validation and constraint warnings
+    -   Optimistic UI updates with rollback capability
+
+</context>
+<PRD>
+# Technical Architecture
+[Current implementation details and frontend-first development stack]
+
+## Current Stack & File Structure:
+```
+scheduler-app/
+├── app/                          # Next.js 14+ App Router
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/                   # Shadcn UI Components
+│   ├── schedule-calendar.tsx     # Main calendar view
+│   ├── schedule-cell.tsx         # Individual day cells
+│   ├── schedule-toolbar.tsx      # Navigation & actions
+│   ├── modals/
+│   │   ├── add-holiday-modal.tsx # Holiday management
+│   │   └── add-leave-modal.tsx   # Leave management
+│   └── ui/                       # Base Shadcn components
+├── hooks/
+│   ├── use-schedule-store.ts     # Zustand state management
+│   ├── use-keyboard-shortcuts.ts # Accessibility features
+│   └── use-toast.ts             # Notification system
+├── lib/
+│   ├── schedule-generator.ts     # Core scheduling engine
+│   ├── staff-data.ts            # Staff definitions
+│   ├── public-holidays.ts       # Holiday data & samples
+│   └── utils.ts                 # Utility functions
+├── types/
+│   └── schedule.ts              # TypeScript interfaces
+└── vitest.config.ts             # Testing configuration
+```
+
+## Technology Dependencies:
+-   **Framework:** Next.js 14+ with App Router and TypeScript
+-   **UI Library:** Shadcn UI (built on Radix UI + Tailwind CSS)
+-   **State Management:** Zustand for client-side state
+-   **Date Management:** date-fns for ISO week calculations and date manipulation
+-   **Testing:** Vitest for unit and integration testing
+-   **Drag & Drop (Planned):** react-beautiful-dnd for manual scheduling interface
+
+## Data Models (Current):
+```typescript
+interface ScheduledDay {
+  date: Date
+  staff: {
+    [staffId: string]: {
+      event: "Shift" | "AL" | "PH" | "OFF"
+      details: ShiftDefinition | null
+      warning?: string
+      bankedHours?: number
+    }
+  }
+  isCurrentMonth: boolean
+}
+
+interface WeeklyHourLog {  // TODO: Implement for analytics
+  weekNumber: number
+  staffId: string
+  scheduledHours: number
+  actualHours: number
+  overtimeHours: number
+  bankedHours: number
+}
+```
+
+# Development Roadmap
+[Frontend-first approach with incremental shipping milestones]
+
+## Phase 1: Critical UI/UX Fixes (Week 1 - Shippable)
+**Goal:** Clean, professional user experience with working CRUD operations
+
+1.  **Task #13 - Reduce Toast Message Overflow:**
+    -   Remove excessive notifications from keyboard shortcuts and navigation
+    -   Keep only essential feedback for form submissions and errors
+    -   **Outcome:** Professional UX ready for stakeholder demos
+
+2.  **Task #16 - Fix Holiday/Leave Deletion:**
+    -   Connect Remove buttons to actual store deletion functions
+    -   Integrate store data with UI displays (replace hardcoded samples)
+    -   Enable complete add/remove workflow without page refresh
+    -   **Outcome:** Full CRUD functionality working end-to-end
+
+**Milestone 1:** Polished, functional schedule management interface ready for daily use
+
+## Phase 2: Manager Analytics Dashboard (Week 2 - Shippable)
+**Goal:** Comprehensive analytics interface with visual hour tracking
+
+3.  **Task #17 - Manager Analytics Implementation:**
+    -   Build analytics components using existing schedule data
+    -   Weekly hour summaries per staff member with target compliance
+    -   Monthly overview with visual charts and progress indicators
+    -   Staff workload distribution and overtime tracking
+    -   **Frontend-First Approach:** Calculate from current schedule state, enhance with backend later
+    -   **Outcome:** Complete management dashboard for operational oversight
+
+**Milestone 2:** Professional management system with analytics ready for production use
+
+## Phase 3: Enhanced Manager Features (Week 3 - Shippable)  
+**Goal:** Complete manager toolkit with conflict resolution and manual overrides
+
+4.  **Task #18 - Resolution Wizard Interface:**
+    -   Interactive modal system for resolving schedule warnings
+    -   Predefined resolution suggestions based on warning type
+    -   Guided workflows for coverage gaps, hour shortfalls, role constraints
+    -   **Frontend-First Approach:** Build UI flows with static suggestions, implement logic later
+
+5.  **Task #14 - Manual Schedule Adjustment Interface:**
+    -   Drag-and-drop schedule modification system
+    -   Real-time constraint validation and visual feedback
+    -   Optimistic UI updates with local state management
+    -   **Frontend-First Approach:** Visual interface with immediate feedback, persist changes later
+
+**Milestone 3:** Full-featured pharmacy management system with manual override capabilities
+
+## Phase 4: Backend Logic Integration (Week 4 - Production Ready)
+**Goal:** Make all business logic work correctly with proper calculations
+
+6.  **Task #11 - Fix Public Holiday Hour Banking:**
+    -   Correct hour reallocation calculations in `generateSchedule`
+    -   Implement proper weekly hour banking within ISO weeks and monthly extensions
+    -   Integrate with existing analytics dashboard
+
+7.  **Task #12 - Annual Leave Coverage Logic:**
+    -   Role-based staff search and automatic swapping
+    -   Coverage gap detection and warning generation
+    -   Integration with resolution wizard suggestions
+
+8.  **Task #15 - Comprehensive Testing:**
+    -   Integration tests for complete scheduling workflows
+    -   Edge case coverage for holiday/leave combinations
+    -   Performance testing for large schedule generations
+
+**Final Milestone:** Production-ready system with all business logic functioning correctly
+
+# Logical Dependency Chain
+[Frontend-first development flow optimized for continuous shipping]
+
+1.  **UI/UX Foundation First:** Fix critical user experience issues (Tasks #13, #16) to establish solid interaction patterns before building complex features.
+
+2.  **Visual Features with Mock Data:** Build analytics and resolution interfaces (Tasks #17, #18) using existing data and simple calculations, providing immediate value and stakeholder confidence.
+
+3.  **Enhanced Interactions:** Implement manual scheduling interface (Task #14) with optimistic updates, creating impressive user capabilities even before backend complexity.
+
+4.  **Backend Integration Last:** Implement complex business logic (Tasks #11, #12) once UI patterns are established, ensuring seamless integration without blocking user experience development.
+
+5.  **Testing & Validation:** Comprehensive testing (Task #15) validates the complete integrated system.
+
+**Key Principle:** Each phase delivers a shippable product with increasing sophistication, allowing for iterative feedback and continuous deployment.
+
+# Risks and Mitigations
+[Technical challenges and solutions prioritized by shipping timeline]
+
+## Frontend-First Approach Risks:
+-   **Risk:** Mock data in analytics might not reflect real calculation complexity
+    -   **Mitigation:** Use actual schedule data for calculations where possible; clearly document assumptions for backend integration
+
+-   **Risk:** Optimistic UI updates in manual scheduling might create inconsistent state
+    -   **Mitigation:** Implement clear rollback mechanisms and state validation; use local state with sync patterns
+
+-   **Risk:** Resolution wizard suggestions might not be implementable in backend
+    -   **Mitigation:** Design suggestions based on existing business rules; validate feasibility during UI design phase
+
+## Technical Implementation Risks:
+-   **Risk:** Hour-banking calculations across month boundaries are complex
+    -   **Mitigation:** Implement `WeeklyHourLog` data model for proper tracking; test extensively with edge cases
+
+-   **Risk:** Role-based coverage logic might have circular dependencies
+    -   **Mitigation:** Implement with clear precedence rules; provide manual override capabilities
+
+-   **Risk:** Drag-and-drop performance with large schedules
+    -   **Mitigation:** Implement virtualization for large datasets; optimize re-render patterns
+
+## Business Process Risks:
+-   **Risk:** Manual overrides might violate business rules
+    -   **Mitigation:** Implement constraint validation with clear warnings; maintain audit trail of manual changes
+
+-   **Risk:** Complex edge cases in holiday/leave combinations
+    -   **Mitigation:** Prioritize warning generation over automatic resolution; provide manual resolution paths
+
+# Appendix
+[Implementation references and technical specifications]
+
+## Key Dependencies:
+```json
+{
+  "next": "^14.0.0",
+  "react": "^18.0.0", 
+  "zustand": "^4.4.0",
+  "date-fns": "^2.30.0",
+  "@radix-ui/react-*": "latest",
+  "tailwindcss": "^3.3.0",
+  "vitest": "^1.0.0",
+  "react-beautiful-dnd": "^13.1.1"
+}
+```
+
+## Testing Strategy:
+-   **Unit Tests:** Core scheduling logic in `lib/schedule-generator.ts`
+-   **Integration Tests:** Complete user workflows with state management
+-   **Visual Tests:** Component rendering and responsive behavior
+-   **Performance Tests:** Large schedule generation and UI responsiveness
+
+## Deployment Considerations:
+-   **Static Generation:** Pre-render common schedule templates
+-   **Edge Caching:** Cache generated schedules for common date ranges
+-   **Progressive Enhancement:** Core functionality works without JavaScript
+-   **Mobile Optimization:** Responsive design with touch-friendly interactions
+
+## Future Enhancements (Post-MVP):
+-   **Multi-location Support:** Extend to multiple pharmacy locations
+-   **Staff Self-Service:** Allow staff to view schedules and request time off
+-   **Integration APIs:** Connect with payroll and HR systems
+-   **Advanced Analytics:** Predictive scheduling and cost optimization
+-   **Notification System:** Automated reminders and schedule changes
+</PRD> 
