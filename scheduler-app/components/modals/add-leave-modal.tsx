@@ -111,7 +111,7 @@ export function AddLeaveModal({
     notes: "",
   })
 
-  const [coverageMethod, setCoverageMethod] = useState<CoverageMethod>("auto-swap")
+  const [coverageMethod, setCoverageMethod] = useState<CoverageMethod | "">("")
   const [selectedSwap, setSelectedSwap] = useState<string | null>(null)
   const [customSwapDate, setCustomSwapDate] = useState("")
   const [tempStaffConfig, setTempStaffConfig] = useState<TempStaffConfig>({
@@ -147,7 +147,7 @@ export function AddLeaveModal({
         priority: "normal",
         notes: "",
       })
-      setCoverageMethod("auto-swap")
+      setCoverageMethod("")
       setSelectedSwap(null)
       setCustomSwapDate("")
       setTempStaffConfig({
@@ -248,6 +248,11 @@ export function AddLeaveModal({
 
     if (!formData.reason.trim()) {
       newErrors.reason = "Please provide a reason for the leave"
+    }
+
+    // Coverage method is required
+    if (!coverageMethod) {
+      newErrors.coverage = "Please select a coverage method"
     }
 
     // Coverage method specific validation
@@ -368,10 +373,10 @@ export function AddLeaveModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5 text-green-600" />
-            Enhanced Leave Request
+            Add Leave
           </DialogTitle>
           <DialogDescription>
-            Schedule leave with intelligent coverage options and workload management.
+            Add a new leave request to the schedule. This will affect staff scheduling and coverage planning.
           </DialogDescription>
         </DialogHeader>
 
@@ -390,26 +395,26 @@ export function AddLeaveModal({
                   <Label htmlFor="staff">
                     Staff Member <span className="text-red-500">*</span>
                   </Label>
-                  <Select
-                    value={formData.staffId}
+                <Select
+                  value={formData.staffId}
                     onValueChange={(value) => updateFormData("staffId", value)}
-                  >
+                >
                     <SelectTrigger className={cn(errors.staffId && "border-red-500")}>
                       <SelectValue placeholder="Select staff member" />
                     </SelectTrigger>
                     <SelectContent>
-                      {STAFF_MEMBERS.map((staff) => (
-                        <SelectItem key={staff.id} value={staff.id}>
+                  {STAFF_MEMBERS.map((staff) => (
+                    <SelectItem key={staff.id} value={staff.id}>
                           <div className="flex items-center gap-2">
                             <div className="flex flex-col">
                               <span className="font-medium">{staff.name}</span>
                               <span className="text-xs text-muted-foreground">
-                                {staff.role} • {staff.weeklyHours}h/week
+                            {staff.role} • {staff.weeklyHours}h/week
                               </span>
                             </div>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      </div>
+                    </SelectItem>
+                  ))}
                     </SelectContent>
                   </Select>
                   {errors.staffId && (
@@ -420,16 +425,16 @@ export function AddLeaveModal({
                   )}
                 </div>
 
-                {/* Date Range */}
-                <div className="grid grid-cols-2 gap-4">
+            {/* Date Range */}
+            <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="startDate">
                       Start Date <span className="text-red-500">*</span>
                     </Label>
-                    <Input
+                  <Input
                       id="startDate"
-                      type="date"
-                      value={formData.startDate}
+                    type="date"
+                    value={formData.startDate}
                       onChange={(e) => updateFormData("startDate", e.target.value)}
                       className={cn(
                         "transition-all duration-200",
@@ -465,17 +470,17 @@ export function AddLeaveModal({
                       </p>
                     )}
                   </div>
-                </div>
+            </div>
 
-                {/* Reason */}
+            {/* Reason */}
                 <div className="space-y-2">
                   <Label htmlFor="reason">
                     Reason <span className="text-red-500">*</span>
                   </Label>
-                  <Input
-                    id="reason"
+                <Input
+                  id="reason"
                     placeholder="e.g., Family vacation"
-                    value={formData.reason}
+                  value={formData.reason}
                     onChange={(e) => updateFormData("reason", e.target.value)}
                     className={cn(
                       "transition-all duration-200",
@@ -531,7 +536,7 @@ export function AddLeaveModal({
                     <CardContent className="space-y-4">
                       <RadioGroup
                         value={coverageMethod}
-                        onValueChange={(value: CoverageMethod) => setCoverageMethod(value)}
+                        onValueChange={(value: CoverageMethod | "") => setCoverageMethod(value)}
                         className="grid grid-cols-1 gap-4"
                       >
                         <div className="flex items-center space-x-2">
@@ -553,7 +558,7 @@ export function AddLeaveModal({
                               Custom Coverage
                             </Badge>
                           </Label>
-                        </div>
+                    </div>
                       </RadioGroup>
 
                       {errors.coverage && (
@@ -621,10 +626,10 @@ export function AddLeaveModal({
                                       {getImpactIcon(suggestion.impact)}
                                       {suggestion.currentHours}h → {suggestion.newHours}h
                                     </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
                           ))}
 
                           {/* Custom Date Option */}
@@ -792,35 +797,35 @@ export function AddLeaveModal({
             )}
           {/* Submit Buttons */}
           <div className="flex justify-end gap-3 pt-6 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
+            className="transition-all duration-200 hover:bg-gray-50"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
               disabled={isSubmitting}
-              className="transition-all duration-200 hover:bg-gray-50"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className={cn(
-                "bg-green-600 hover:bg-green-700 transition-all duration-200",
+            className={cn(
+              "bg-green-600 hover:bg-green-700 transition-all duration-200",
                 isSubmitting && "animate-pulse"
-              )}
-            >
-              {isSubmitting ? (
-                <>
+            )}
+          >
+            {isSubmitting ? (
+              <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Adding Leave...
-                </>
-              ) : (
-                <>
+                Adding Leave...
+              </>
+            ) : (
+              <>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Leave Request
-                </>
-              )}
-            </Button>
+                Add Leave Request
+              </>
+            )}
+          </Button>
           </div>
         </form>
       </DialogContent>
