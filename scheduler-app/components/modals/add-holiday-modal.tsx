@@ -18,7 +18,7 @@ import { FormField, FormLabel, FormControl, FormDescription, FormMessage } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Clock, AlertCircle } from "lucide-react"
 import { format, addDays } from "date-fns"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { useScheduleStore } from "@/hooks/use-schedule-store"
 
@@ -43,7 +43,7 @@ const RECURRENCE_OPTIONS = [
 
 export function AddHolidayModal({ open, onOpenChange, defaultDate }: AddHolidayModalProps) {
   const { addPublicHoliday } = useScheduleStore()
-  const { addToast } = useToast()
+  // Toast will be imported directly
 
   const [formData, setFormData] = useState({
     name: "",

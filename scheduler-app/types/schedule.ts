@@ -24,6 +24,14 @@ export interface ShiftPattern {
   }
 }
 
+export interface SwapInfo {
+  originalStaffId: string
+  originalStaffName: string
+  swapType: 'covering' | 'original_off'
+  coveringStaffId?: string
+  coveringStaffName?: string
+}
+
 export interface ScheduledDay {
   date: Date
   staff: {
@@ -35,6 +43,10 @@ export interface ScheduledDay {
       originalBankedHours?: number // Original hours banked from this holiday
       totalReallocatedHours?: number // Total hours successfully reallocated from this day
       remainingUnallocatedHours?: number // Hours that couldn't be reallocated
+      isSwapCoverage?: boolean // Indicates this person is covering for someone else
+      isSwapResult?: boolean // Indicates this assignment is result of a swap
+      swapInfo?: SwapInfo // Details about the swap
+      tempStaffName?: string // Name of temp staff covering this shift
     }
   }
   isCurrentMonth: boolean
@@ -48,7 +60,20 @@ export interface WeeklyHourLog {
   bankedHours: number
 }
 
+export interface TempStaffConfig {
+  name: string
+  role: string
+  startTime: string
+  endTime: string
+  hourlyRate: number
+  notes: string
+}
+
 export interface AnnualLeave {
   staffId: string
   dates: Date[]
+  coverageMethod?: "auto-swap" | "temp-staff" | "decide-later"
+  swapId?: string
+  tempStaff?: TempStaffConfig
+  reason?: string
 }

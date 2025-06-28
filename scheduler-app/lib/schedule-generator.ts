@@ -318,10 +318,96 @@ function attemptAnnualLeaveSwap(
   }
 }
 
+/**
+ * Process swaps by exchanging shifts between staff members on specified dates
+ */
+function processSwaps(
+  schedule: ScheduledDay[],
+  swaps: { id: string; staffId1: string; staffId2: string; date1: Date; date2: Date }[]
+): void {
+  swaps.forEach(swap => {
+    // Find the days in the schedule using date-only comparison
+    const day1 = schedule.find(day => isSameDate(day.date, swap.date1))
+    const day2 = schedule.find(day => isSameDate(day.date, swap.date2))
+    
+    if (!day1 || !day2) {
+      console.warn(`Swap ${swap.id}: Could not find dates in schedule`)
+      console.warn(`Looking for dates: ${swap.date1.toISOString()} and ${swap.date2.toISOString()}`)
+      console.warn(`Available schedule dates:`, schedule.map(d => d.date.toISOString()).slice(0, 5))
+      return
+    }
+
+    // Get current assignments
+    const staff1Day1 = day1.staff[swap.staffId1] // Person taking leave's original assignment
+    const staff2Day1 = day1.staff[swap.staffId2] // Covering person's assignment on leave date
+    const staff1Day2 = day2.staff[swap.staffId1] // Person taking leave's assignment on swap date
+    const staff2Day2 = day2.staff[swap.staffId2] // Covering person's original assignment on swap date
+
+    if (!staff1Day1 || !staff2Day2) {
+      console.warn(`Swap ${swap.id}: Missing required staff assignments`)
+      console.warn(`Staff1 Day1:`, staff1Day1, `Staff2 Day2:`, staff2Day2)
+      return
+    }
+
+    // Store original assignments before swap
+    const staff1OriginalShift = { ...staff1Day1 } // Person taking leave's original shift
+    const staff2OriginalShift = { ...staff2Day2 } // Covering person's original shift
+
+    // Apply the swap with coverage priority
+    // Day1 (leave date): Show covering person working (staff2 takes staff1's shift)
+    day1.staff[swap.staffId2] = {
+      ...staff1OriginalShift,
+      event: staff1OriginalShift.event === 'AL' ? 'Shift' : staff1OriginalShift.event,
+      isSwapCoverage: true,
+      swapInfo: {
+        originalStaffId: swap.staffId1,
+        originalStaffName: STAFF_MEMBERS.find(s => s.id === swap.staffId1)?.name || swap.staffId1,
+        swapType: 'covering'
+      }
+    }
+
+    // Day2 (swap date): Show person taking leave working (staff1 takes staff2's shift)  
+    day2.staff[swap.staffId1] = {
+      ...staff2OriginalShift,
+      isSwapCoverage: true,
+      swapInfo: {
+        originalStaffId: swap.staffId2,
+        originalStaffName: STAFF_MEMBERS.find(s => s.id === swap.staffId2)?.name || swap.staffId2,
+        swapType: 'covering'
+      }
+    }
+
+    // Remove/modify the original assignments to prevent conflicts
+    if (staff1Day1.event === 'AL') {
+      // Person taking leave: remove AL display since coverage is shown
+      delete day1.staff[swap.staffId1]
+    }
+
+    // Remove original assignment for covering person on swap date
+    day2.staff[swap.staffId2] = {
+      event: "OFF",
+      details: null,
+      isSwapResult: true,
+      swapInfo: {
+        originalStaffId: swap.staffId2,
+        originalStaffName: STAFF_MEMBERS.find(s => s.id === swap.staffId2)?.name || swap.staffId2,
+        coveringStaffId: swap.staffId1,
+        coveringStaffName: STAFF_MEMBERS.find(s => s.id === swap.staffId1)?.name || swap.staffId1,
+        swapType: 'original_off'
+      }
+    }
+
+    console.log(`✅ Swap ${swap.id} applied successfully:`)
+    console.log(`  ${swap.staffId1} (taking leave) → ${swap.staffId2} covers on ${swap.date1.toDateString()}`)
+    console.log(`  ${swap.staffId2} (original shift) → ${swap.staffId1} covers on ${swap.date2.toDateString()}`)
+  })
+}
+
 export function generateSchedule(
   targetMonth: Date,
   publicHolidays: Date[] = [],
-  annualLeave: { staffId: string; dates: Date[] }[] = []
+  annualLeave: { staffId: string; dates: Date[] }[] = [],
+  swaps: { id: string; staffId1: string; staffId2: string; date1: Date; date2: Date }[] = []
 ): ScheduledDay[] {
   // Get extended date range (full weeks containing the month)
   const monthStart = startOfMonth(targetMonth)
@@ -435,6 +521,9 @@ export function generateSchedule(
 
     return scheduledDay
   })
+
+  // Process swaps after initial schedule generation
+  processSwaps(allDays, swaps)
 
   return reallocateBankedHours(allDays)
 }
@@ -999,7 +1088,7 @@ function hasConsecutiveDays(days: Set<number>, required: number): boolean {
 
 function processAnnualLeave(
   schedule: ScheduledDay[],
-  annualLeave: { staffId: string; dates: Date[] }[],
+  annualLeave: { staffId: string; dates: Date[]; coverageMethod?: string; tempStaff?: any }[],
   staffMembers: StaffMember[]
 ): void {
   annualLeave.forEach(leave => {
@@ -1020,12 +1109,29 @@ function processAnnualLeave(
         const originalShift = staffOnLeave.details;
         const staffMember = staffMembers.find(s => s.id === leave.staffId);
         
-                 // Mark as Annual Leave
-         scheduleDay.staff[leave.staffId] = {
-           event: 'AL',
-           details: null,
-           warning: undefined
-         };
+                         // Check if temp staff is assigned for this leave
+        if (leave.coverageMethod === "temp-staff" && leave.tempStaff) {
+          // Show temp staff working instead of AL
+          scheduleDay.staff[leave.staffId] = {
+            event: 'Shift',
+            details: {
+              type: originalShift.type,
+              timing: originalShift.timing,
+              startTime: leave.tempStaff.startTime,
+              endTime: leave.tempStaff.endTime,
+              workHours: originalShift.workHours
+            },
+            warning: undefined,
+            tempStaffName: leave.tempStaff.name
+          };
+        } else {
+          // Mark as Annual Leave
+          scheduleDay.staff[leave.staffId] = {
+            event: 'AL',
+            details: null,
+            warning: undefined
+          };
+        }
 
         // Try to find someone of the same role to cover the shift
         const potentialCovers = staffMembers.filter(staff => 

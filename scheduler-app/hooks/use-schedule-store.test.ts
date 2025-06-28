@@ -9,6 +9,7 @@ beforeEach(() => {
       currentMonth: new Date("2024-07-01T00:00:00.000Z"),
       publicHolidays: [],
       annualLeave: [],
+      swaps: [],
     })
   })
 })
@@ -27,7 +28,7 @@ describe("useScheduleStore", () => {
     act(() => {
       useScheduleStore.getState().addPublicHoliday(holiday)
     })
-    expect(useScheduleStore.getState().publicHolidays).toContainEqual(holiday)
+    expect(useScheduleStore.getState().publicHolidays).toContainEqual({ date: holiday, name: "Public Holiday" })
   })
 
   it("should remove a public holiday", () => {
@@ -35,12 +36,12 @@ describe("useScheduleStore", () => {
     act(() => {
       useScheduleStore.getState().addPublicHoliday(holiday)
     })
-    expect(useScheduleStore.getState().publicHolidays).toContainEqual(holiday)
+    expect(useScheduleStore.getState().publicHolidays).toContainEqual({ date: holiday, name: "Public Holiday" })
 
     act(() => {
       useScheduleStore.getState().removePublicHoliday(holiday)
     })
-    expect(useScheduleStore.getState().publicHolidays).not.toContainEqual(holiday)
+    expect(useScheduleStore.getState().publicHolidays).not.toContainEqual({ date: holiday, name: "Public Holiday" })
   })
 
   it("should add annual leave for a new staff member", () => {

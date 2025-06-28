@@ -11,11 +11,11 @@ import { motion, AnimatePresence } from "framer-motion"
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 export function ScheduleCalendar() {
-  const { currentMonth, publicHolidays, annualLeave } = useScheduleStore()
+  const { currentMonth, publicHolidays, annualLeave, swaps } = useScheduleStore()
 
   // Extract just the dates for the schedule generator
   const holidayDates = publicHolidays.map(holiday => holiday.date)
-  const schedule = generateSchedule(currentMonth, holidayDates, annualLeave)
+  const schedule = generateSchedule(currentMonth, holidayDates, annualLeave, swaps)
 
   return (
     <motion.div

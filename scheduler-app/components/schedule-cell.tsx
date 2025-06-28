@@ -241,14 +241,16 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
   const dayNumber = format(scheduledDay.date, "d")
   const dayName = format(scheduledDay.date, "EEE")
 
-  // Get public holidays from store
-  const { publicHolidays } = useScheduleStore()
+  // Get public holidays and annual leave from store
+  const { publicHolidays, annualLeave } = useScheduleStore()
   
   // Check for public holiday
   const publicHoliday = publicHolidays.find((ph) => isSameDay(ph.date, scheduledDay.date))
 
-  // Check for annual leave
-  const annualLeave = SAMPLE_ANNUAL_LEAVE.filter((al) => al.dates.some((date) => isSameDay(date, scheduledDay.date)))
+  // Check for annual leave using store data instead of sample data
+  const staffOnLeave = annualLeave.filter((al) => 
+    al.dates.some((date) => isSameDay(date, scheduledDay.date))
+  )
 
   // Check for warnings from the schedule data
   const dayWarnings = Object.values(scheduledDay.staff)
@@ -256,7 +258,7 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
     .filter(Boolean) as string[]
 
   const hasPublicHoliday = !!publicHoliday
-  const hasAnnualLeave = annualLeave.length > 0
+  const hasAnnualLeave = staffOnLeave.length > 0
   const hasWarnings = dayWarnings.length > 0
 
   const [showHolidayModal, setShowHolidayModal] = useState(false)
@@ -302,7 +304,7 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
             {hasAnnualLeave && (
               <div
                 className="w-2 h-2 bg-yellow-500 rounded-full"
-                title={`Annual Leave: ${annualLeave.map((al) => STAFF_MEMBERS.find((s) => s.id === al.staffId)?.name).join(", ")}`}
+                title={`Annual Leave: ${staffOnLeave.map((al) => STAFF_MEMBERS.find((s) => s.id === al.staffId)?.name).join(", ")}`}
               />
             )}
           </div>
@@ -331,7 +333,7 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
           {hasAnnualLeave && (
             <div
               className="w-2.5 h-2.5 bg-yellow-500 rounded-full"
-              title={`Annual Leave: ${annualLeave.map((al) => STAFF_MEMBERS.find((s) => s.id === al.staffId)?.name).join(", ")}`}
+              title={`Annual Leave: ${staffOnLeave.map((al) => STAFF_MEMBERS.find((s) => s.id === al.staffId)?.name).join(", ")}`}
             />
           )}
           {hasWarnings && <AlertTriangle className="h-4 w-4 text-amber-500" />}
@@ -363,8 +365,21 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
           if (!staffSchedule) return null
           const { event, details, warning } = staffSchedule
 
-          const staffHasAL = annualLeave.some((al) => al.staffId === staff.id)
+          const staffHasAL = staffOnLeave.some((al) => al.staffId === staff.id) && !staffSchedule.isSwapCoverage
           if(staffHasAL) {
+            // Check if temp staff is covering
+            if (staffSchedule.tempStaffName) {
+              const hourInfo = formatHourDisplay(details)
+              return (
+                <div key={staff.id} className="text-sm p-2 rounded bg-gray-100 text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{staffSchedule.tempStaffName}</span>
+                    : {details?.startTime} - {details?.endTime} 
+                    <span className="text-sm">({hourInfo.displayText})</span>
+                  </div>
+                </div>
+              )
+            }
             return (
               <div key={staff.id} className="text-sm p-2 rounded bg-yellow-100 text-yellow-800">
                 {staff.name}: Annual Leave
@@ -375,9 +390,14 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
           if (event === "Shift" && details) {
             const hourInfo = formatHourDisplay(details)
             return (
-              <div key={staff.id} className="text-sm p-2 rounded bg-gray-100 flex justify-between items-center">
+              <div key={staff.id} className={cn(
+                "text-sm p-2 rounded flex justify-between items-center",
+                staffSchedule.isSwapCoverage ? "bg-orange-100 border border-orange-200" : "bg-gray-100"
+              )}>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{staff.name}</span>: {details.startTime} - {details.endTime} 
+                  <span className="font-medium">{staff.name}</span>
+                  {staffSchedule.isSwapCoverage && <span className="text-xs">🔄</span>}
+                  : {details.startTime} - {details.endTime} 
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -390,6 +410,9 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>{hourInfo.tooltip}</p>
+                        {staffSchedule.isSwapCoverage && staffSchedule.swapInfo && (
+                          <p>🔄 Covering for {staffSchedule.swapInfo.originalStaffName}</p>
+                        )}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -425,7 +448,7 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
             {STAFF_MEMBERS.map((staff) => {
               const staffSchedule = scheduledDay.staff[staff.id]
               const hasShift = staffSchedule?.event === "Shift"
-              const staffHasAL = annualLeave.some((al) => al.staffId === staff.id)
+              const staffHasAL = staffOnLeave.some((al) => al.staffId === staff.id)
 
               if (!hasShift || !staffSchedule.details || staffHasAL) return null
 
@@ -453,7 +476,7 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
             {STAFF_MEMBERS.map((staff) => {
               const staffSchedule = scheduledDay.staff[staff.id]
               const hasShift = staffSchedule?.event === "Shift"
-              const staffHasAL = annualLeave.some((al) => al.staffId === staff.id)
+              const staffHasAL = staffOnLeave.some((al) => al.staffId === staff.id)
 
               if (!hasShift || !staffSchedule.details || staffHasAL) return null
 
@@ -515,10 +538,39 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
               const { event, details, warning } = staffSchedule
               const yPosition = index * 18 + 2 // Stack shifts vertically
 
-              // Check if this staff has AL
-              const staffHasAL = annualLeave.some((al) => al.staffId === staff.id)
+              // Check if this staff has AL (only show if not covered by swap)
+              const staffHasAL = staffOnLeave.some((al) => al.staffId === staff.id) && !staffSchedule.isSwapCoverage
 
               if (staffHasAL) {
+                // Check if temp staff is covering
+                if (staffSchedule.tempStaffName && details) {
+                  const reallocatedHours = details.reallocatedHours || 0
+                  const displayInfo = getShiftDisplayInfo(
+                    details.startTime, 
+                    details.endTime, 
+                    details.timing, 
+                    reallocatedHours
+                  )
+                  const hourInfo = formatHourDisplay(details)
+                  
+                  return (
+                    <div
+                      key={staff.id}
+                      className="absolute rounded text-xs font-medium flex items-center justify-center bg-gray-400 text-white"
+                      style={{
+                        left: `${displayInfo.left}%`,
+                        width: `${Math.max(displayInfo.width, 15)}%`,
+                        top: `${yPosition}px`,
+                        height: "14px",
+                        minWidth: "20px",
+                      }}
+                      title={`${staffSchedule.tempStaffName}: ${displayInfo.displayStartTime}-${displayInfo.displayEndTime} (${hourInfo.tooltip}) - Temp staff covering for ${staff.name}`}
+                    >
+                      <span className="truncate px-1">{staffSchedule.tempStaffName.charAt(0)} {hourInfo.displayText}</span>
+                    </div>
+                  )
+                }
+                
                 return (
                   <div
                     key={staff.id}
@@ -552,6 +604,15 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
                 const is11hShift = (details.startTime === "09:15" && details.endTime === "21:45") ||
                   (displayInfo.displayStartTime === "09:15" && displayInfo.displayEndTime === "21:45")
 
+                // Build tooltip with swap information
+                let tooltipText = `${staff.name}: ${displayInfo.displayStartTime}-${displayInfo.displayEndTime} (${hourInfo.tooltip})`
+                if (staffSchedule.isSwapCoverage && staffSchedule.swapInfo) {
+                  tooltipText += ` - 🔄 Covering for ${staffSchedule.swapInfo.originalStaffName}`
+                }
+                if (warning) {
+                  tooltipText += ` - WARNING: ${warning}`
+                }
+
                 return (
                   <div
                     key={staff.id}
@@ -559,7 +620,8 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
                       "absolute rounded text-white text-xs font-medium flex items-center justify-between shadow-sm",
                       is11hShift ? "px-0.5" : "px-1", // Less padding for 11h shifts to reach edges
                       STAFF_COLORS[staff.id as keyof typeof STAFF_COLORS],
-                      hourInfo.hasReallocated && "ring-2 ring-blue-300 ring-opacity-60"
+                      hourInfo.hasReallocated && "ring-2 ring-blue-300 ring-opacity-60",
+                      staffSchedule.isSwapCoverage && "ring-2 ring-orange-300 ring-opacity-60" // Swap indicator
                     )}
                     style={{
                       left: `${displayInfo.left}%`,
@@ -568,15 +630,16 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
                       height: "14px",
                       minWidth: "20px",
                     }}
-                    title={`${staff.name}: ${displayInfo.displayStartTime}-${displayInfo.displayEndTime} (${hourInfo.tooltip})${
-                      warning ? ` - WARNING: ${warning}` : ""
-                    }`}
+                    title={tooltipText}
                   >
                     <span className="truncate flex items-center gap-1">
                       {staff.name.charAt(0)}
                       {hourInfo.displayText}
                       {hourInfo.hasReallocated && (
                         <div className="w-1 h-1 bg-blue-200 rounded-full" />
+                      )}
+                      {staffSchedule.isSwapCoverage && (
+                        <span className="text-[10px]">🔄</span>
                       )}
                     </span>
                     {warning && (
@@ -617,7 +680,7 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
               {STAFF_MEMBERS.map((staff) => {
                 const staffSchedule = scheduledDay.staff[staff.id]
                 const hasShift = staffSchedule?.event === "Shift"
-                const staffHasAL = annualLeave.some((al) => al.staffId === staff.id)
+                const staffHasAL = staffOnLeave.some((al) => al.staffId === staff.id)
 
                 if (!hasShift || !staffSchedule.details || staffHasAL) return null
 
@@ -645,7 +708,7 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
               {STAFF_MEMBERS.map((staff) => {
                 const staffSchedule = scheduledDay.staff[staff.id]
                 const hasShift = staffSchedule?.event === "Shift"
-                const staffHasAL = annualLeave.some((al) => al.staffId === staff.id)
+                const staffHasAL = staffOnLeave.some((al) => al.staffId === staff.id)
 
                 if (!hasShift || !staffSchedule.details || staffHasAL) return null
 

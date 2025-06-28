@@ -51,6 +51,8 @@ interface AddLeaveModalProps {
   onOpenChange: (open: boolean) => void
   defaultStaffId?: string
   defaultDate?: string
+  editLeave?: AnnualLeave
+  editDate?: Date
 }
 
 interface FormData {
@@ -66,7 +68,7 @@ interface FormData {
   notes: string
 }
 
-type CoverageMethod = "auto-swap" | "temp-staff"
+type CoverageMethod = "auto-swap" | "temp-staff" | "decide-later"
 
 interface SwapSuggestion {
   id: string
@@ -94,8 +96,10 @@ export function AddLeaveModal({
   onOpenChange,
   defaultStaffId = "",
   defaultDate = "",
+  editLeave,
+  editDate,
 }: AddLeaveModalProps) {
-  const { addAnnualLeave } = useScheduleStore()
+  const { addAnnualLeave, addSwap } = useScheduleStore()
   const { addToast } = useToast()
 
   const [formData, setFormData] = useState<FormData>({
@@ -135,33 +139,54 @@ export function AddLeaveModal({
   // Reset form when modal opens
   useEffect(() => {
     if (open) {
-      setFormData({
-        staffId: defaultStaffId || "",
-        leaveType: "annual",
-        startDate: defaultDate || format(new Date(), "yyyy-MM-dd"),
-        endDate: defaultDate || format(new Date(), "yyyy-MM-dd"),
-        reason: "",
-        isHalfDay: false,
-        halfDayPeriod: "morning",
-        requestedBy: "staff",
-        priority: "normal",
-        notes: "",
-      })
-      setCoverageMethod("")
+      if (editLeave && editDate) {
+        // Pre-populate form with existing leave data
+        setFormData({
+          staffId: editLeave.staffId,
+          leaveType: "annual",
+          startDate: format(editDate, "yyyy-MM-dd"),
+          endDate: format(editDate, "yyyy-MM-dd"),
+          reason: editLeave.reason || "",
+          isHalfDay: false,
+          halfDayPeriod: "morning",
+          requestedBy: "staff",
+          priority: "normal",
+          notes: "",
+        })
+        setCoverageMethod(editLeave.coverageMethod || "")
+        if (editLeave.tempStaff) {
+          setTempStaffConfig(editLeave.tempStaff)
+        }
+      } else {
+        // New leave request
+        setFormData({
+          staffId: defaultStaffId || "",
+          leaveType: "annual",
+          startDate: defaultDate || format(new Date(), "yyyy-MM-dd"),
+          endDate: defaultDate || format(new Date(), "yyyy-MM-dd"),
+          reason: "",
+          isHalfDay: false,
+          halfDayPeriod: "morning",
+          requestedBy: "staff",
+          priority: "normal",
+          notes: "",
+        })
+        setCoverageMethod("")
+        setTempStaffConfig({
+          name: "",
+          role: "Pharmacist",
+          startTime: "09:15",
+          endTime: "21:45",
+          hourlyRate: 45,
+          notes: ""
+        })
+      }
       setSelectedSwap(null)
       setCustomSwapDate("")
-      setTempStaffConfig({
-        name: "",
-        role: "Pharmacist",
-        startTime: "09:15",
-        endTime: "21:45",
-        hourlyRate: 45,
-        notes: ""
-      })
       setErrors({})
       setSwapSuggestions([])
     }
-  }, [open, defaultStaffId, defaultDate])
+  }, [open, defaultStaffId, defaultDate, editLeave, editDate])
 
   // Find selected staff member
   const selectedStaff = STAFF_MEMBERS.find(staff => staff.id === formData.staffId)
@@ -268,6 +293,7 @@ export function AddLeaveModal({
         newErrors.tempTime = "Start and end times are required"
       }
     }
+    // decide-later requires no additional validation
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -293,7 +319,23 @@ export function AddLeaveModal({
       const currentDate = new Date(startDate)
       while (currentDate <= endDate) {
         console.log("Adding leave for date:", currentDate)
-        addAnnualLeave(formData.staffId, new Date(currentDate))
+        
+        // Determine coverage data based on method
+        let tempStaffData = undefined
+        let swapIdData = undefined
+        
+        if (coverageMethod === "temp-staff") {
+          tempStaffData = tempStaffConfig
+        }
+        
+        addAnnualLeave(
+          formData.staffId, 
+          new Date(currentDate), 
+          coverageMethod,
+          tempStaffData,
+          swapIdData,
+          formData.reason
+        )
         currentDate.setDate(currentDate.getDate() + 1)
       }
 
@@ -302,12 +344,22 @@ export function AddLeaveModal({
       if (coverageMethod === "auto-swap" && selectedSwap) {
         const swap = swapSuggestions.find(s => s.id === selectedSwap)
         if (swap) {
-          coverageDetails = ` with ${swap.staffName} covering via swap`
-          // TODO: Implement actual swap logic in next subtask
+          // Implement actual swap logic - bidirectional swap
+          const swapId = addSwap(formData.staffId, swap.staffId, startDate, swap.swapDate)
+          coverageDetails = ` with ${swap.staffName} covering via swap on ${format(swap.swapDate, 'MMM d')}`
+          
+          console.log(`Swap created: ${swapId}`)
+          console.log(`${formData.staffId} (${selectedStaff?.name}) takes leave on ${format(startDate, 'MMM d')}`)
+          console.log(`${swap.staffId} (${swap.staffName}) covers on ${format(startDate, 'MMM d')}`)
+          console.log(`${formData.staffId} (${selectedStaff?.name}) covers ${swap.staffId} (${swap.staffName}) on ${format(swap.swapDate, 'MMM d')}`)
         }
       } else if (coverageMethod === "temp-staff") {
         coverageDetails = ` with ${tempStaffConfig.name} (temp ${tempStaffConfig.role}) covering`
-        // TODO: Implement temp staff logic in next subtask
+        // Note: Temp staff logic would be implemented here in a real system
+        console.log(`Temp staff arranged: ${tempStaffConfig.name} (${tempStaffConfig.role})`)
+      } else if (coverageMethod === "decide-later") {
+        coverageDetails = " - coverage to be decided later"
+        console.log("Leave added without coverage arrangement - to be decided later")
       }
 
       // Show success message
@@ -373,10 +425,10 @@ export function AddLeaveModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5 text-green-600" />
-            Add Leave
+            {editLeave ? "Edit Leave" : "Add Leave"}
           </DialogTitle>
           <DialogDescription>
-            Add a new leave request to the schedule. This will affect staff scheduling and coverage planning.
+            {editLeave ? "Edit this leave request and update coverage arrangements." : "Add a new leave request to the schedule. This will affect staff scheduling and coverage planning."}
           </DialogDescription>
         </DialogHeader>
 
@@ -558,7 +610,17 @@ export function AddLeaveModal({
                               Custom Coverage
                             </Badge>
                           </Label>
-                    </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="decide-later" id="decide-later" />
+                          <Label htmlFor="decide-later" className="flex items-center gap-2 cursor-pointer">
+                            <Clock className="h-4 w-4 text-yellow-600" />
+                            Decide Later / Pending
+                            <Badge variant="secondary" className="text-xs">
+                              No Coverage Yet
+                            </Badge>
+                          </Label>
+                        </div>
                       </RadioGroup>
 
                       {errors.coverage && (
