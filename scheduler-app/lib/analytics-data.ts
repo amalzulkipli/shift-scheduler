@@ -54,14 +54,6 @@ interface StaffAnalyticsData {
 
 /**
  * Extract real analytics data from the schedule generator for a given month
- * 
- * TODO: Fix data model mismatch between analytics and schedule systems
- * Analytics expects: AnnualLeave.dates: Date[] (array of dates)
- * Current system uses: AnnualLeave.date: Date (single date)
- * This will be addressed in a future task after schedule foundation is complete
- * 
- * ERROR: Line 56 - Cannot read properties of undefined (reading 'some')
- * CAUSE: staffLeave.dates is undefined because current AnnualLeave uses single 'date' property
  */
 export function generateAnalyticsData(
   selectedDate: Date,

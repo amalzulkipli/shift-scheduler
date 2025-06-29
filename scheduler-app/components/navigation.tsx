@@ -3,11 +3,11 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Calendar, BarChart3, Users, Edit3 } from "lucide-react"
+import { Calendar, BarChart3, Users } from "lucide-react"
 
 interface NavigationProps {
-  currentView: "schedule" | "analytics" | "adjustments"
-  onViewChange: (view: "schedule" | "analytics" | "adjustments") => void
+  currentView: "schedule" | "analytics"
+  onViewChange: (view: "schedule" | "analytics") => void
 }
 
 export function Navigation({ currentView, onViewChange }: NavigationProps) {
@@ -41,21 +41,6 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
             >
               <Calendar className="h-4 w-4" />
               Schedule
-            </Button>
-            
-            <Button
-              variant={currentView === "adjustments" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onViewChange("adjustments")}
-              className={cn(
-                "gap-2",
-                currentView === "adjustments" 
-                  ? "bg-blue-600 text-white hover:bg-blue-700" 
-                  : "text-gray-600 hover:text-gray-900"
-              )}
-            >
-              <Edit3 className="h-4 w-4" />
-              Adjustments
             </Button>
             
             <Button
