@@ -89,17 +89,17 @@ export function ScheduleToolbar() {
       addPublicHoliday(adjustedDate, newHolidayName.trim())
 
       toast.success("Holiday added", `${newHolidayName} for ${format(adjustedDate, "MMM d, yyyy")} has been added to the schedule`, {
-        action: {
-          label: "Undo",
+      action: {
+        label: "Undo",
           onClick: () => {
             removePublicHoliday(adjustedDate)
             toast.info("Holiday removed", `${newHolidayName} has been removed`)
           },
-        },
-      })
+      },
+    })
 
       // Reset form and hide it
-      setNewHolidayName("")
+    setNewHolidayName("")
       setNewHolidayDate(format(new Date(), "yyyy-MM-dd"))
       setNewHolidayType("public")
       setNewHolidayRecurrence("none")
@@ -121,14 +121,14 @@ export function ScheduleToolbar() {
       const holidayName = holidayInfo?.name || "Public Holiday"
       
       toast.success("Holiday removed", `${holidayName} has been removed from the schedule`, {
-        action: {
-          label: "Undo",
+      action: {
+        label: "Undo",
           onClick: () => {
             // Re-add the holiday
             toast.info("Holiday restored", "Holiday has been restored")
           },
-        },
-      })
+      },
+    })
     } catch (error) {
       toast.error("Error removing holiday", "Failed to remove holiday. Please try again.")
     } finally {
@@ -252,13 +252,13 @@ export function ScheduleToolbar() {
       const staffName = staffMember?.name || leaveToDelete.staffId
       
       toast.success("Leave request removed", `${staffName}'s leave for ${format(leaveToDelete.date, "MMM d, yyyy")} has been removed`, {
-        action: {
-          label: "Undo",
+      action: {
+        label: "Undo",
           onClick: () => {
             toast.info("Leave restored", `${staffName}'s leave has been restored`)
           },
-        },
-      })
+      },
+    })
     } catch (error) {
       toast.error("Error removing leave", "Failed to remove leave request. Please try again.")
     } finally {
@@ -506,26 +506,25 @@ export function ScheduleToolbar() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
-              {annualLeave.flatMap(leave => 
-                leave.dates.map(date => {
-                  const staffMember = STAFF_MEMBERS.find(s => s.id === leave.staffId)
-                  const coverage = getCoverageStatus(leave, date)
-                  
-                  return (
-                    <div
-                      key={`${leave.staffId}-${date.toISOString()}`}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
+              {annualLeave.map(leave => {
+                const staffMember = STAFF_MEMBERS.find(s => s.id === leave.staffId)
+                const coverage = getCoverageStatus(leave, leave.date)
+                
+                return (
+                  <div
+                    key={`${leave.staffId}-${leave.date.toISOString()}`}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
                         <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
                           {staffMember?.name.charAt(0) || "?"}
                         </Badge>
                         <div>
                           <div className="font-medium">{staffMember?.name}</div>
                           <div className="text-sm text-gray-600">
-                            {format(date, 'MMM d, yyyy')}
-                          </div>
-                        </div>
+                            {format(leave.date, 'MMM d, yyyy')}
+              </div>
+            </div>
                         <Badge variant={coverage.variant}>
                           {coverage.status}
                         </Badge>
@@ -534,30 +533,30 @@ export function ScheduleToolbar() {
                             {coverage.details}
                           </span>
                         )}
-                      </div>
+          </div>
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditLeave(leave, date)}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                          onClick={() => handleEditLeave(leave, leave.date)}
                           className="h-8 w-8 p-0"
-                        >
+                >
                           <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveLeave(leave.staffId, date)}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                          onClick={() => handleRemoveLeave(leave.staffId, leave.date)}
                           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
+                >
                           <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+                </Button>
+              </div>
+            </div>
                   )
                 })
-              )}
-            </div>
+              }
+          </div>
           </CardContent>
         </Card>
       )}

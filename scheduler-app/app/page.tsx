@@ -15,7 +15,7 @@ export default function Home() {
       <Navigation currentView={currentView} onViewChange={setCurrentView} />
       
       {currentView === "schedule" ? (
-        <ScheduleCalendar />
+      <ScheduleCalendar />
       ) : (
         <AnalyticsDashboard />
       )}

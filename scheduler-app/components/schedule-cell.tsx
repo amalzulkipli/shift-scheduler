@@ -248,8 +248,8 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
   const publicHoliday = publicHolidays.find((ph) => isSameDay(ph.date, scheduledDay.date))
 
   // Check for annual leave using store data instead of sample data
-  const staffOnLeave = annualLeave.filter((al) => 
-    al.dates.some((date) => isSameDay(date, scheduledDay.date))
+    const staffOnLeave = annualLeave.filter((al) =>
+    isSameDay(al.date, scheduledDay.date)
   )
 
   // Check for warnings from the schedule data
@@ -360,43 +360,94 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
 
       {/* Simplified list for mobile */}
       <div className="md:hidden space-y-2">
-        {STAFF_MEMBERS.map(staff => {
-          const staffSchedule = scheduledDay.staff[staff.id]
+        {Object.entries(scheduledDay.staff).map(([staffKey, staffSchedule]) => {
           if (!staffSchedule) return null
           const { event, details, warning } = staffSchedule
 
-          const staffHasAL = staffOnLeave.some((al) => al.staffId === staff.id) && !staffSchedule.isSwapCoverage
-          if(staffHasAL) {
-            // Check if temp staff is covering
-            if (staffSchedule.tempStaffName) {
-              const hourInfo = formatHourDisplay(details)
-              return (
-                <div key={staff.id} className="text-sm p-2 rounded bg-gray-100 text-gray-700">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{staffSchedule.tempStaffName}</span>
-                    : {details?.startTime} - {details?.endTime} 
-                    <span className="text-sm">({hourInfo.displayText})</span>
-                  </div>
-                </div>
-              )
-            }
+          // Get staff info - either from STAFF_MEMBERS or use temp staff name
+          const regularStaff = STAFF_MEMBERS.find(s => s.id === staffKey)
+          const isRegularStaff = !!regularStaff
+
+          const leaveRecord = staffOnLeave.find((al) => al.staffId === staffKey)
+
+          // 1. Handle temp staff coverage (now in original staff position)
+          if (staffSchedule.tempStaffName && details && isRegularStaff) {
+            const reallocatedHours = details.reallocatedHours || 0
+            const displayInfo = getShiftDisplayInfo(
+              details.startTime, 
+              details.endTime, 
+              details.timing, 
+              reallocatedHours
+            )
+            const hourInfo = formatHourDisplay(details)
+            
             return (
-              <div key={staff.id} className="text-sm p-2 rounded bg-yellow-100 text-yellow-800">
-                {staff.name}: Annual Leave
+              <div
+                key={staffKey}
+                className="text-sm p-2 rounded bg-gray-100 text-gray-700">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{staffSchedule.tempStaffName}</span>
+                  : {details?.startTime} - {details?.endTime} 
+                  <span className="text-sm">({hourInfo.displayText})</span>
+                </div>
               </div>
             )
           }
 
-          if (event === "Shift" && details) {
-            const hourInfo = formatHourDisplay(details)
+          // Skip processing if this is not a regular staff member
+          if (!isRegularStaff) return null
+
+          // 2. Render uncovered annual leave
+          if (leaveRecord && leaveRecord.coverageMethod === 'decide-later') {
             return (
-              <div key={staff.id} className={cn(
-                "text-sm p-2 rounded flex justify-between items-center",
-                staffSchedule.isSwapCoverage ? "bg-orange-100 border border-orange-200" : "bg-gray-100"
-              )}>
+              <div key={staffKey} className="text-sm p-2 rounded bg-yellow-100 text-yellow-800">
+                {regularStaff.name}: Annual Leave
+              </div>
+            )
+          }
+          
+          // 3. Render regular shifts (only if not temp staff coverage)
+          if (event === "Shift" && details && !staffSchedule.tempStaffName) {
+            const reallocatedHours = details.reallocatedHours || 0
+            // Calculate adjusted display info based on timing preference
+            const displayInfo = getShiftDisplayInfo(
+              details.startTime, 
+              details.endTime, 
+              details.timing, 
+              reallocatedHours
+            )
+            const hourInfo = formatHourDisplay(details)
+            
+            // Check if this is an 11h shift to adjust styling
+            // This includes both original 11h shifts and shifts that become 11h after reallocation
+            const is11hShift = (details.startTime === "09:15" && details.endTime === "21:45") ||
+              (displayInfo.displayStartTime === "09:15" && displayInfo.displayEndTime === "21:45")
+
+            // Build tooltip with swap information
+            let tooltipText = `${regularStaff.name}: ${displayInfo.displayStartTime}-${displayInfo.displayEndTime} (${hourInfo.tooltip})`
+            if (staffSchedule.isSwapCoverage && staffSchedule.swapInfo) {
+              tooltipText += ` - Covering for ${staffSchedule.swapInfo.originalStaffName}`
+            }
+            if (warning) {
+              tooltipText += ` - WARNING: ${warning}`
+            }
+
+            return (
+              <div
+                key={staffKey}
+                className={cn(
+                  "text-sm p-2 rounded flex justify-between items-center",
+                  staffSchedule.isSwapCoverage ? "bg-amber-50 border border-amber-200" : "bg-gray-100"
+                )}>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">{staff.name}</span>
-                  {staffSchedule.isSwapCoverage && <span className="text-xs">🔄</span>}
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">{regularStaff.name}</span>
+                    {staffSchedule.isSwapCoverage && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                        Swap
+                      </span>
+                    )}
+                  </div>
                   : {details.startTime} - {details.endTime} 
                   <TooltipProvider>
                     <Tooltip>
@@ -411,7 +462,7 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
                       <TooltipContent>
                         <p>{hourInfo.tooltip}</p>
                         {staffSchedule.isSwapCoverage && staffSchedule.swapInfo && (
-                          <p>🔄 Covering for {staffSchedule.swapInfo.originalStaffName}</p>
+                          <p>Covering for {staffSchedule.swapInfo.originalStaffName}</p>
                         )}
                       </TooltipContent>
                     </Tooltip>
@@ -531,49 +582,55 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
 
           {/* Staff Shift Bars */}
           {!hasPublicHoliday &&
-            STAFF_MEMBERS.map((staff, index) => {
-              const staffSchedule = scheduledDay.staff[staff.id]
+            Object.entries(scheduledDay.staff).map(([staffKey, staffSchedule], index) => {
               if (!staffSchedule) return null
 
               const { event, details, warning } = staffSchedule
+
+              // Get staff info - either from STAFF_MEMBERS or use temp staff name
+              const regularStaff = STAFF_MEMBERS.find(s => s.id === staffKey)
+              const isRegularStaff = !!regularStaff
               const yPosition = index * 18 + 2 // Stack shifts vertically
 
-              // Check if this staff has AL (only show if not covered by swap)
-              const staffHasAL = staffOnLeave.some((al) => al.staffId === staff.id) && !staffSchedule.isSwapCoverage
+              const leaveRecord = staffOnLeave.find((al) => al.staffId === staffKey)
 
-              if (staffHasAL) {
-                // Check if temp staff is covering
-                if (staffSchedule.tempStaffName && details) {
-                  const reallocatedHours = details.reallocatedHours || 0
-                  const displayInfo = getShiftDisplayInfo(
-                    details.startTime, 
-                    details.endTime, 
-                    details.timing, 
-                    reallocatedHours
-                  )
-                  const hourInfo = formatHourDisplay(details)
-                  
-                  return (
-                    <div
-                      key={staff.id}
-                      className="absolute rounded text-xs font-medium flex items-center justify-center bg-gray-400 text-white"
-                      style={{
-                        left: `${displayInfo.left}%`,
-                        width: `${Math.max(displayInfo.width, 15)}%`,
-                        top: `${yPosition}px`,
-                        height: "14px",
-                        minWidth: "20px",
-                      }}
-                      title={`${staffSchedule.tempStaffName}: ${displayInfo.displayStartTime}-${displayInfo.displayEndTime} (${hourInfo.tooltip}) - Temp staff covering for ${staff.name}`}
-                    >
-                      <span className="truncate px-1">{staffSchedule.tempStaffName.charAt(0)} {hourInfo.displayText}</span>
-                    </div>
-                  )
-                }
+              // 1. Handle temp staff coverage (now in original staff position)
+              if (staffSchedule.tempStaffName && details && isRegularStaff) {
+                const reallocatedHours = details.reallocatedHours || 0
+                const displayInfo = getShiftDisplayInfo(
+                  details.startTime, 
+                  details.endTime, 
+                  details.timing, 
+                  reallocatedHours
+                )
+                const hourInfo = formatHourDisplay(details)
                 
                 return (
                   <div
-                    key={staff.id}
+                    key={staffKey}
+                    className="absolute rounded text-xs font-medium flex items-center justify-center bg-gray-400 text-white"
+                    style={{
+                      left: `${displayInfo.left}%`,
+                      width: `${Math.max(displayInfo.width, 15)}%`,
+                      top: `${yPosition}px`,
+                      height: "14px",
+                      minWidth: "20px",
+                    }}
+                    title={`${staffSchedule.tempStaffName}: ${displayInfo.displayStartTime}-${displayInfo.displayEndTime} (${hourInfo.tooltip}) - Temp staff covering for ${regularStaff.name}`}
+                  >
+                    <span className="truncate px-1">{staffSchedule.tempStaffName.charAt(0)} {hourInfo.displayText}</span>
+                  </div>
+                )
+              }
+
+              // Skip processing if this is not a regular staff member
+              if (!isRegularStaff) return null
+
+              // 2. Render uncovered annual leave
+              if (leaveRecord && leaveRecord.coverageMethod === 'decide-later') {
+                return (
+                  <div
+                    key={staffKey}
                     className="absolute rounded text-xs font-medium flex items-center justify-center bg-yellow-300 text-yellow-800"
                     style={{
                       left: "2%",
@@ -581,14 +638,15 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
                       top: `${yPosition}px`,
                       height: "14px",
                     }}
-                    title={`${staff.name}: Annual Leave`}
+                    title={`${regularStaff.name}: Annual Leave`}
                   >
-                    <span className="truncate px-1">{staff.name.charAt(0)} AL</span>
+                    <span className="truncate px-1">{regularStaff.name.charAt(0)} AL</span>
                   </div>
                 )
               }
-
-              if (event === "Shift" && details) {
+              
+              // 3. Render regular shifts (only if not temp staff coverage)
+              if (event === "Shift" && details && !staffSchedule.tempStaffName) {
                 const reallocatedHours = details.reallocatedHours || 0
                 // Calculate adjusted display info based on timing preference
                 const displayInfo = getShiftDisplayInfo(
@@ -605,23 +663,28 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
                   (displayInfo.displayStartTime === "09:15" && displayInfo.displayEndTime === "21:45")
 
                 // Build tooltip with swap information
-                let tooltipText = `${staff.name}: ${displayInfo.displayStartTime}-${displayInfo.displayEndTime} (${hourInfo.tooltip})`
+                let tooltipText = `${regularStaff.name}: ${displayInfo.displayStartTime}-${displayInfo.displayEndTime} (${hourInfo.tooltip})`
                 if (staffSchedule.isSwapCoverage && staffSchedule.swapInfo) {
-                  tooltipText += ` - 🔄 Covering for ${staffSchedule.swapInfo.originalStaffName}`
+                  tooltipText += ` - Covering for ${staffSchedule.swapInfo.originalStaffName}`
                 }
                 if (warning) {
                   tooltipText += ` - WARNING: ${warning}`
                 }
 
+                // Determine staff color - use amber for swap coverage, regular colors otherwise
+                const staffColorClass = staffSchedule.isSwapCoverage ?
+                  "bg-gradient-to-r from-amber-400 to-amber-500" :
+                  (regularStaff ? STAFF_COLORS[staffKey as keyof typeof STAFF_COLORS] : "bg-gray-400")
+
                 return (
                   <div
-                    key={staff.id}
+                    key={staffKey}
                     className={cn(
                       "absolute rounded text-white text-xs font-medium flex items-center justify-between shadow-sm",
                       is11hShift ? "px-0.5" : "px-1", // Less padding for 11h shifts to reach edges
-                      STAFF_COLORS[staff.id as keyof typeof STAFF_COLORS],
+                      staffColorClass,
                       hourInfo.hasReallocated && "ring-2 ring-blue-300 ring-opacity-60",
-                      staffSchedule.isSwapCoverage && "ring-2 ring-orange-300 ring-opacity-60" // Swap indicator
+                      staffSchedule.isSwapCoverage && "ring-2 ring-amber-200 ring-opacity-80" // Subtle swap ring
                     )}
                     style={{
                       left: `${displayInfo.left}%`,
@@ -633,13 +696,15 @@ export function ScheduleCell({ scheduledDay, isCurrentMonth }: ScheduleCellProps
                     title={tooltipText}
                   >
                     <span className="truncate flex items-center gap-1">
-                      {staff.name.charAt(0)}
+                      {regularStaff.name.charAt(0)}
                       {hourInfo.displayText}
                       {hourInfo.hasReallocated && (
                         <div className="w-1 h-1 bg-blue-200 rounded-full" />
                       )}
                       {staffSchedule.isSwapCoverage && (
-                        <span className="text-[10px]">🔄</span>
+                        <span className="inline-flex items-center justify-center w-3 h-3 bg-amber-600 text-white rounded-full text-[8px] font-bold">
+                          S
+                        </span>
                       )}
                     </span>
                     {warning && (

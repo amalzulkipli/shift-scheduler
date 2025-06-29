@@ -71,7 +71,7 @@ export interface TempStaffConfig {
 
 export interface AnnualLeave {
   staffId: string
-  dates: Date[]
+  date: Date
   coverageMethod?: "auto-swap" | "temp-staff" | "decide-later"
   swapId?: string
   tempStaff?: TempStaffConfig

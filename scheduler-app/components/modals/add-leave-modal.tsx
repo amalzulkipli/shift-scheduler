@@ -159,18 +159,18 @@ export function AddLeaveModal({
         }
       } else {
         // New leave request
-        setFormData({
-          staffId: defaultStaffId || "",
-          leaveType: "annual",
-          startDate: defaultDate || format(new Date(), "yyyy-MM-dd"),
-          endDate: defaultDate || format(new Date(), "yyyy-MM-dd"),
-          reason: "",
-          isHalfDay: false,
-          halfDayPeriod: "morning",
-          requestedBy: "staff",
-          priority: "normal",
-          notes: "",
-        })
+      setFormData({
+        staffId: defaultStaffId || "",
+        leaveType: "annual",
+        startDate: defaultDate || format(new Date(), "yyyy-MM-dd"),
+        endDate: defaultDate || format(new Date(), "yyyy-MM-dd"),
+        reason: "",
+        isHalfDay: false,
+        halfDayPeriod: "morning",
+        requestedBy: "staff",
+        priority: "normal",
+        notes: "",
+      })
         setCoverageMethod("")
         setTempStaffConfig({
           name: "",
@@ -271,9 +271,10 @@ export function AddLeaveModal({
       newErrors.endDate = "End date must be after start date"
     }
 
-    if (!formData.reason.trim()) {
-      newErrors.reason = "Please provide a reason for the leave"
-    }
+    // Reason is optional - no validation needed
+    // if (!formData.reason.trim()) {
+    //   newErrors.reason = "Please provide a reason for the leave"
+    // }
 
     // Coverage method is required
     if (!coverageMethod) {
@@ -334,7 +335,7 @@ export function AddLeaveModal({
           coverageMethod,
           tempStaffData,
           swapIdData,
-          formData.reason
+          formData.reason || "Annual Leave"
         )
         currentDate.setDate(currentDate.getDate() + 1)
       }
@@ -463,7 +464,7 @@ export function AddLeaveModal({
                               <span className="text-xs text-muted-foreground">
                             {staff.role} • {staff.weeklyHours}h/week
                               </span>
-                            </div>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -527,7 +528,7 @@ export function AddLeaveModal({
             {/* Reason */}
                 <div className="space-y-2">
                   <Label htmlFor="reason">
-                    Reason <span className="text-red-500">*</span>
+                    Reason <span className="text-gray-400">(optional)</span>
                   </Label>
                 <Input
                   id="reason"
@@ -620,7 +621,7 @@ export function AddLeaveModal({
                               No Coverage Yet
                             </Badge>
                           </Label>
-                        </div>
+                    </div>
                       </RadioGroup>
 
                       {errors.coverage && (
